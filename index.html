@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lung Cancer Detection</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='css/styles.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <style>
+    body {
+      background-color: #06152b;
+    }
+
+    .card {
+      border: none;
+      border-radius: 15px;
+    }
+
+    .card-header {
+      background-color: #3498db !important;
+      border-top-left-radius: 15px;
+      border-top-right-radius: 15px;
+    }
+
+    .btn-primary {
+      background-color: #2980b9;
+      border-color: #2980b9;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: #3498db;
+      transform: translateY(-2px);
+    }
+
+    #result-alert {
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .acknowledgment-container {
+      display: none;
+      margin-top: 30px;
+    }
+
+    .acknowledgment-box {
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      background-color: #fff;
+    }
+
+    .acknowledgment-box p {
+      font-size: 14px;
+    }
+
+    .print-btn {
+      margin-top: 20px;
+      background-color: #16a085;
+      border-color: #16a085;
+    }
+
+    .print-btn:hover {
+      background-color: #1abc9c;
+    }
+
+    .image-preview {
+      max-height: 200px;
+      margin-bottom: 20px;
+    }
+
+    /* Hide image in print mode */
+    @media print {
+      #image-preview {
+        display: none;
+      }
+    }
+  </style>
+  <body>
+    <div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white text-center">
+              <h2>Lung Cancer Detection System</h2>
+            </div>
+            <div class="card-body">
+              <form id="detection-form" enctype="multipart/form-data">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Full Name</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="patient_name"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Age</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      name="patient_age"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Gender</label>
+                    <select class="form-select" name="patient_gender">
+                      <option>Male</option>
+                      <option>Female</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Contact Number</label>
+                    <input
+                      type="tel"
+                      class="form-control"
+                      name="patient_contact"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Address</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="patient_address"
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Medical History</label>
+                  <textarea
+                    class="form-control"
+                    name="medical_history"
+                    rows="3"
+                  ></textarea>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Upload CT Scan</label>
+                  <input
+                    type="file"
+                    class="form-control"
+                    name="ct_scan"
+                    accept="image/*"
+                    required
+                  />
+                </div>
+
+                <div id="image-preview" class="text-center mb-3"></div>
+
+                <div class="text-center">
+                  <button type="submit" class="btn btn-primary btn-lg">
+                    Detect Cancer
+                  </button>
+                </div>
+              </form>
+
+              <div
+                id="result-container"
+                class="mt-4 text-center"
+                style="display: none"
+              >
+                <div id="result-alert" class="alert">
+                  <h4 id="result-text"></h4>
+                  <p id="recommendation-text"></p>
+                  <p id="probability-text"></p>
+                </div>
+              </div>
+
+              <!-- Acknowledgment Section -->
+              <div
+                id="acknowledgment-container"
+                class="acknowledgment-container"
+              >
+                <div class="acknowledgment-box">
+                  <h4>Acknowledgment</h4>
+                  <p>
+                    <strong>Patient Name:</strong> <span id="ack-name"></span>
+                  </p>
+                  <p><strong>Age:</strong> <span id="ack-age"></span></p>
+                  <p><strong>Gender:</strong> <span id="ack-gender"></span></p>
+                  <p>
+                    <strong>Contact Number:</strong>
+                    <span id="ack-contact"></span>
+                  </p>
+                  <p>
+                    <strong>Address:</strong> <span id="ack-address"></span>
+                  </p>
+                  <p>
+                    <strong>Medical History:</strong>
+                    <span id="ack-history"></span>
+                  </p>
+
+                  <p>
+                    <strong>Detection Result:</strong>
+                    <span id="ack-result"></span>
+                  </p>
+                  <p>
+                    <strong>Recommendation:</strong>
+                    <span id="ack-recommendation"></span>
+                  </p>
+                  <p>
+                    <strong>Cancer Probability:</strong>
+                    <span id="ack-probability"></span>
+                  </p>
+
+                  <!-- Print Button -->
+                  <button class="btn print-btn" onclick="generatePDF()">
+                    Print Acknowledgment
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap & jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        // Image preview
+        $('input[name="ct_scan"]').change(function (event) {
+          var file = event.target.files[0];
+          var reader = new FileReader();
+
+          reader.onload = function (e) {
+            $("#image-preview").html(`
+              <img src="${e.target.result}" class="img-fluid rounded image-preview">
+            `);
+          };
+
+          reader.readAsDataURL(file);
+        });
+
+        // Form submission
+        $("#detection-form").submit(function (e) {
+          e.preventDefault();
+
+          var formData = new FormData(this);
+
+          $.ajax({
+            url: "/detect",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+              $("#result-container").show();
+              $("#result-alert")
+                .removeClass("alert-success alert-danger")
+                .addClass("alert-" + response.result_class);
+
+              $("#result-text").text(response.result);
+              $("#recommendation-text").text(
+                "Recommendation: " + response.recommendation
+              );
+              $("#probability-text").text(
+                `Probability of Cancer: ${(response.probability * 100).toFixed(
+                  2
+                )}%`
+              );
+
+              // Show acknowledgment with patient details (excluding image)
+              $("#acknowledgment-container").show();
+              $("#ack-name").text(response.patient_name);
+              $("#ack-age").text(response.patient_age);
+              $("#ack-gender").text(response.patient_gender);
+              $("#ack-contact").text(response.patient_contact);
+              $("#ack-address").text(response.patient_address);
+              $("#ack-history").text(response.medical_history);
+              $("#ack-result").text(response.result);
+              $("#ack-recommendation").text(response.recommendation);
+              $("#ack-probability").text(
+                `${(response.probability * 100).toFixed(2)}%`
+              );
+            },
+            error: function (xhr) {
+              var errorMsg = xhr.responseJSON
+                ? xhr.responseJSON.error
+                : "An unexpected error occurred";
+              alert(errorMsg);
+            },
+          });
+        });
+      });
+
+      function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Set font style and size
+        doc.setFont("helvetica");
+        doc.setFontSize(12);
+
+        // Add patient details in the PDF
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("Patient Acknowledgment", 10, 10);
+        doc.setFont("helvetica", "normal");
+
+        let yOffset = 20;
+        doc.text(`Patient Name: ${$("#ack-name").text()}`, 10, yOffset);
+        yOffset += 10;
+        doc.text(`Age: ${$("#ack-age").text()}`, 10, yOffset);
+        yOffset += 10;
+        doc.text(`Gender: ${$("#ack-gender").text()}`, 10, yOffset);
+        yOffset += 10;
+        doc.text(`Contact: ${$("#ack-contact").text()}`, 10, yOffset);
+        yOffset += 10;
+        doc.text(`Address: ${$("#ack-address").text()}`, 10, yOffset);
+        yOffset += 10;
+        doc.text(`Medical History: ${$("#ack-history").text()}`, 10, yOffset);
+        yOffset += 10;
+        doc.text(`Detection Result: ${$("#ack-result").text()}`, 10, yOffset);
+        yOffset += 10;
+        doc.text(
+          `Recommendation: ${$("#ack-recommendation").text()}`,
+          10,
+          yOffset
+        );
+        yOffset += 10;
+        doc.text(
+          `Cancer Probability: ${$("#ack-probability").text()}`,
+          10,
+          yOffset
+        );
+
+        // Save the PDF
+        doc.save("patient_acknowledgment.pdf");
+      }
+    </script>
+  </body>
+</html>

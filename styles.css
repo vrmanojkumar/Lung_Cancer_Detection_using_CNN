@@ -1,0 +1,31 @@
+body {
+  background-color: #f4f6f9;
+}
+
+.card {
+  border: none;
+  border-radius: 15px;
+}
+
+.card-header {
+  background-color: #3498db !important;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+}
+
+.btn-primary {
+  background-color: #2980b9;
+  border-color: #2980b9;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #3498db;
+  transform: translateY(-2px);
+}
+
+#result-alert {
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
